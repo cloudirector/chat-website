@@ -2,15 +2,42 @@ import socket
 import threading
 import signal
 import sys
+import json
 from hashing import *
 
 serverhost, serverport = "0.0.0.0", 1338
+
+test_difficulty = 1
+test_block = {
+    "header": {
+        "nonce": 0,
+        "prevhash": "fe976ece5bdd1bc27958bca70345018da1d37cd9d2ff0b02458c90884dfe99fa",
+        "hash": "",
+        "timestamp": 1120602139
+    },
+    "body": {
+        "messages": {
+            "announcements": [
+                {"timestamp": 1120602139, "username": "admin", "message": "testing"}
+            ],
+            "general": [
+                {"timestamp": 1120602139, "username": "admin", "message": "hello god"},
+                {"timestamp": 1120602139, "username": "god", "message": "what the fuck do you want"}
+            ]
+        }
+    }
+}
+
+
+test_block_json = json.dumps(test_block)
 
 def handle_client(client_socket):
     while True:
         data = client_socket.recv(1024)
         if not data:
             break
+        else:
+            print(f"[*] Recived data: {data}")
         client_socket.send("OK".encode())
     client_socket.close()
 

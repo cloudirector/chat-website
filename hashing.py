@@ -1,5 +1,5 @@
 # https://www.simplilearn.com/tutorials/cyber-security-tutorial/sha-256-algorithm
-def sha256(message):
+def sha256(inputdata):
     # buffers
     h0 = 0x6a09e667
     h1 = 0xbb67ae85
@@ -29,17 +29,18 @@ def sha256(message):
         0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
     ]
 
-    # padding
-    message = bytearray(message, 'utf-8')
-    ml = len(message) * 8
-    message.append(0x80)
-    while len(message) % 64 != 56:
-        message.append(0x00)
-    message += ml.to_bytes(8, 'big')
+    # padding/convert to bytearray
+    if isinstance(inputdata, str):
+        inputdata = bytearray(inputdata, 'utf-8')
+    ml = len(inputdata) * 8
+    inputdata.append(0x80)
+    while len(inputdata) % 64 != 56:
+        inputdata.append(0x00)
+    inputdata += ml.to_bytes(8, 'big')
 
     # split into 512bit blocks:
-    for i in range(0, len(message), 64):
-        chunk = message[i:i+64]
+    for i in range(0, len(inputdata), 64):
+        chunk = inputdata[i:i+64]
         # split into words
         words = [int.from_bytes(chunk[j:j+4], 'big') for j in range(0, 64, 4)]
         # Extend 16bit into 64bit

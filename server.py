@@ -2,6 +2,7 @@ import socket
 import threading
 import signal
 import sys
+from hashing import *
 
 serverhost, serverport = "0.0.0.0", 1338
 

@@ -1,4 +1,5 @@
 import socket
+from hashing import *
 
 serverhost, serverport = "0.0.0.0", 1338
 

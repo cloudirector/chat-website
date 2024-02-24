@@ -11,6 +11,7 @@ test_difficulty = 1
 test_block = {
     "header": {
         "nonce": 0,
+        "difficulty": test_difficulty,
         "prevhash": "fe976ece5bdd1bc27958bca70345018da1d37cd9d2ff0b02458c90884dfe99fa",
         "hash": "",
         "timestamp": 1120602139
@@ -38,7 +39,10 @@ def handle_client(client_socket):
             break
         else:
             print(f"[*] Recived data: {data}")
-        client_socket.send("OK".encode())
+            if data.decode().lower() == "getblock":
+                client_socket.send(test_block_json.encode())
+            else:
+                client_socket.send("OK".encode())
     client_socket.close()
 
 def start_server(serverhost, serverport):

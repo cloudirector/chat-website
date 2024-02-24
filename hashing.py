@@ -29,7 +29,7 @@ def sha256(inputdata):
         0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
     ]
 
-    # padding/convert to bytearray
+    # padding
     if isinstance(inputdata, str):
         inputdata = bytearray(inputdata, 'utf-8')
     ml = len(inputdata) * 8
@@ -79,4 +79,4 @@ def sha256(inputdata):
     return hex(hash_result)[2:]
 
 def rotate_right(value, shift):
-    return (value >> shift) | (value << (32 - shift)) & 0xFFFFFFFF
+    return (value >> shift) | (value << (32 - shift)) & 0xFFFFFFFF 

@@ -75,8 +75,8 @@ def sha256(inputdata):
         h6 = (h6 + g) & 0xFFFFFFFF
         h7 = (h7 + h) & 0xFFFFFFFF
     # concatenate
-    hash_result = (h0 << 128) | (h1 << 96) | (h2 << 64) | (h3 << 32) | h4
-    return hex(hash_result)[2:]
+    hash_result = (h0 << 224) | (h1 << 192) | (h2 << 160) | (h3 << 128) | (h4 << 96) | (h5 << 64) | (h6 << 32) | h7
+    return format(hash_result, '064x')
 
 def rotate_right(value, shift):
     return (value >> shift) | (value << (32 - shift)) & 0xFFFFFFFF 

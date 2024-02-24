@@ -5,7 +5,7 @@ import sys
 import json
 from hashing import *
 
-serverhost, serverport = "0.0.0.0", 1338
+serverhost, serverport = "0.0.0.0", 1337
 
 test_difficulty = 1
 test_block = {

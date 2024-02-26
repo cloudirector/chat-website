@@ -39,7 +39,7 @@ def handle_client(client_socket):
         if not data:
             break
         else:
-            print(f"[*] Recived data: {data}")
+            print(f"[*] Received data: {data}")
             # logic for block requests
             if data.decode().lower() == "getblock":
                 client_socket.send(test_block_json.encode())

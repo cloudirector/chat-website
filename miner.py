@@ -16,7 +16,7 @@ def start_client():
             # get block from server
             client_socket.send("getblock".encode())
             block_json = client_socket.recv(1024).decode()
-            print(f"[*] Recived block! ({len(block_json)})")
+            print(f"[*] Received block! ({len(block_json)})")
             # load dict from json and get block data
             block = json.loads(block_json)
             blockDifficulty = block['header']['difficulty']
@@ -25,7 +25,7 @@ def start_client():
             # init nonce and start main loop
             nonce = 0
             while True:
-                # hash block after incrememnting nonce and changing block header
+                # hash block after incrementing nonce and changing block header
                 nonce = nonce + 1
                 block['header']["nonce"] = nonce
                 hash = sha256(json.dumps(block))

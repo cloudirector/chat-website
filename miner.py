@@ -1,5 +1,6 @@
 import socket
 import json
+import time
 from hashing import *
 
 serverhost, serverport = "0.0.0.0", 1338
@@ -24,23 +25,28 @@ def start_client():
             input()
             # init nonce and start main loop
             nonce = 0
+            hashCount = 0
+            startTime = time.time()
             while True:
                 # hash block after incrementing nonce and changing block header
                 nonce = nonce + 1
                 block['header']["nonce"] = nonce
                 hash = sha256(json.dumps(block))
-                print(f"({hash})[{nonce}]")
+                hashCount = hashCount + 1
+                # print(f"({hash})[{nonce}]")
                 # check if hash matches set difficulty
                 if hash.startswith("0"*blockDifficulty):
                     # if solved validate it on the server
-                    print(f"Solved! ({hash})")
+                    endTime = time.time()
+                    elapsedTime = endTime - startTime
+                    print(f"[*] Solved: ({hash}) ({elapsedTime}s)")
                     client_socket.send(f"verifyhash {hash} {nonce}".encode())
                     response = client_socket.recv(1024).decode()
                     input()
                     break
-        else:        
+        else:
             # get block by default
-            client_socket.send("getblock".encode())
+            client_socket.send(message.encode())
             data = client_socket.recv(1024)
             print(f"Received block from server: {data.decode()}")
     # disconnect after processing

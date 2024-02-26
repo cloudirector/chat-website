@@ -60,8 +60,10 @@ def handle_client(client_socket):
                         print(f"invalid difficulty")
                 else:
                     print(f"invalid hash")
+            elif data.decode().lower() == "ping":
+                client_socket.send("pong".encode())
             else:
-                client_socket.send("OK".encode())
+                client_socket.send(data.encode())
     client_socket.close()
 
 def start_server(serverhost, serverport):
@@ -73,9 +75,11 @@ def start_server(serverhost, serverport):
 
     try:
         # check for clients and start threads
+        miners = []
         while True:
             client_socket, addr = server_socket.accept()
-            print(f"[*] Started connection from {addr[0]}:{addr[1]}")
+            miners.append([client_socket, addr])
+            print(f"[*] Miner {miners.index([client_socket, addr])} connected ({addr[0]}:{addr[1]})")
             client_handler = threading.Thread(target=handle_client, args=(client_socket,))
             client_handler.start()
     # process keyboard interrupt for exit

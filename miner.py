@@ -2,8 +2,9 @@ import socket
 import json
 import time
 from hashing import *
+import sys
 
-serverhost, serverport = "0.0.0.0", 1338
+serverhost, serverport = "0.0.0.0", int(sys.argv[1])
 
 def start_client():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,7 +23,7 @@ def start_client():
             block = json.loads(block_json)
             blockDifficulty = block['header']['difficulty']
             print(f"Solving with difficulty: {blockDifficulty} ({'0'*blockDifficulty})")
-            input()
+            input("Awaiting Input...")
             # init nonce and start main loop
             nonce = 0
             hashCount = 0
@@ -33,6 +34,8 @@ def start_client():
                 block['header']["nonce"] = nonce
                 hash = sha256(json.dumps(block))
                 hashCount = hashCount + 1
+                if hashCount % 100 == 0:
+                    print(f"Calcuated {hashCount} hashes")
                 # print(f"({hash})[{nonce}]")
                 # check if hash matches set difficulty
                 if hash.startswith("0"*blockDifficulty):

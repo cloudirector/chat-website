@@ -4,8 +4,9 @@ import signal
 import sys
 import json
 from hashing import *
+import sys
 
-serverhost, serverport = "0.0.0.0", 1338
+serverhost, serverport = "0.0.0.0", int(sys.argv[1])
 
 # fake block array and difficulty for testing aswell as dumping to json
 test_difficulty = 2
@@ -31,22 +32,22 @@ test_block = {
 }
 test_block_json = json.dumps(test_block)
 
-def handle_client(client_socket):
+def handleMiner(minerSocket):
     # main loop
     while True:
         # set data var and break if empty, process if not
-        data = client_socket.recv(1024)
+        data = minerSocket.recv(1024).decode()
         if not data:
-            break
+            minerSocket.send("no data provided".encode())
         else:
             print(f"[*] Received data: {data}")
             # logic for block requests
-            if data.decode().lower() == "getblock":
-                client_socket.send(test_block_json.encode())
+            if data.lower() == "getblock":
+                minerSocket.send(test_block_json.encode())
             # logic for verifying a hash
-            elif data.decode().lower().startswith("verifyhash "):
+            elif data.lower().startswith("verifyhash "):
                 # splitting request and create temp block to inject hashnonce
-                command, blockname, hashnonce = data.decode().split()
+                command, blockname, hashnonce = data.split()
                 tempblock = test_block
                 tempblock["header"]["nonce"] = int(hashnonce)
                 tempblockhash = sha256(json.dumps(tempblock))
@@ -55,17 +56,34 @@ def handle_client(client_socket):
                 if tempblockhash == blockname:
                     if tempblockhash.startswith("0"*test_difficulty):
                         print(f"Solved! ({tempblockhash})")
-                        client_socket.send("valid, good job!".encode())
+                        minerSocket.send("valid, good job!".encode())
                     else:
                         print(f"invalid difficulty")
                 else:
                     print(f"invalid hash")
-            elif data.decode().lower() == "ping":
-                client_socket.send("pong".encode())
+            elif data.lower() == "ping":
+                minerSocket.send("pong".encode())
+            elif data.startswith("changeDiff"):
+                if len(data.split(" ")) == 2:
+                    nonceDiff = data.split(" ")[1]
+                    test_difficulty = nonceDiff
+                    print(f"[*] Updated diff to {test_difficulty})")
+                    minerSocket.send(f"Updated Diff to {test_difficulty}".encode())
+                else:
+                    minerSocket.send("Invalid change request".encode())
+            elif data.lower() == "exit":
+                minerSocket.close()
+                print(f"[x] Miner {miners.index([minerSocket, addr])} disconnected ({addr[0]}:{addr[1]})")
             else:
-                client_socket.send(data.encode())
-    client_socket.close()
+                try:
+                    minerSocket.send("None".encode())
+                except Exception as error:
+                    print(f"what the sigma:\n {error}")
+    minerSocket.close()
 
+def handleClient(clientSocket):
+    print("incomplete")
+    
 def start_server(serverhost, serverport):
     # init socket, bind, then start listening
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -76,12 +94,26 @@ def start_server(serverhost, serverport):
     try:
         # check for clients and start threads
         miners = []
+        clients = []
         while True:
-            client_socket, addr = server_socket.accept()
-            miners.append([client_socket, addr])
-            print(f"[*] Miner {miners.index([client_socket, addr])} connected ({addr[0]}:{addr[1]})")
-            client_handler = threading.Thread(target=handle_client, args=(client_socket,))
-            client_handler.start()
+            socketStart, addr = server_socket.accept()
+            socketStart.send("Who are you?".encode())
+            # add timer and verify
+            while True:
+                socketType = socketStart.recv(1024).decode()
+                if socketType.startswith("miner"):
+                    # add checks for append
+                    miners.append([socketStart, addr])
+                    print(f"[*] Miner {miners.index([socketStart, addr])} connected ({addr[0]}:{addr[1]})")
+                    minerHandler = threading.Thread(target=handleMiner, args=(startSocket,))
+                    minerHandler.start()
+                elif socketType.startswith("client"):
+                    # add check for append
+                    clients.append([socketStart, addr])
+                    print(f"[*] Client {miners.index([socketStart, addr])} connected ({addr[0]}:{addr[1]})")
+                else:
+                    socketStart.send("Invalid".encode())
+                    socketStart.close()
     # process keyboard interrupt for exit
     except KeyboardInterrupt:
         print("\n[*] Server is shutting down...")

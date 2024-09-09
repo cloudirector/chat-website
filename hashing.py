@@ -10,7 +10,7 @@ def sha256(inputdata):
     h6 = 0x1f83d9ab
     h7 = 0x5be0cd19
     # keys
-    k = [
+    keys = [
         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
         0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
         0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -53,7 +53,7 @@ def sha256(inputdata):
         for j in range(64):
             s1 = (rotate_right(e, 6) ^ rotate_right(e, 11) ^ rotate_right(e, 25))
             ch = ((e & f) ^ ((~e) & g))
-            temp1 = (h + s1 + ch + k[j] + words[j]) & 0xFFFFFFFF
+            temp1 = (h + s1 + ch + keys[j] + words[j]) & 0xFFFFFFFF
             s0 = (rotate_right(a, 2) ^ rotate_right(a, 13) ^ rotate_right(a, 22))
             maj = ((a & b) ^ (a & c) ^ (b & c))
             temp2 = (s0 + maj) & 0xFFFFFFFF

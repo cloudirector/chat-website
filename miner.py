@@ -4,20 +4,27 @@ import time
 from hashing import *
 import sys
 
-serverhost, serverport = "0.0.0.0", int(sys.argv[1])
+serverHost, serverPort = "0.0.0.0", int(sys.argv[1])
 
-def start_client():
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((serverhost, serverport))
+def startMiner():
+    serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    serverSocket.connect((serverHost, serverPort))
+    data = serverSocket.recv(1024).decode()
+    print(f'Server: "{data}"')
+    serverSocket.send("miner".encode())
+    print('miner: "miner"')
+    data = serverSocket.recv(1024).decode()
+    print(f'Server: "{data}"')
     while True:
         message = input("Enter a message (or 'exit' to quit): ")
         if message.lower() == "exit":
-            client_socket.send(message.encode())
+            serverSocket.send(message.encode())
+            serverSocket.close()
             break
         elif message.lower() == "solveblock":
             # get block from server
-            client_socket.send("getblock".encode())
-            block_json = client_socket.recv(1024).decode()
+            serverSocket.send("getblock".encode())
+            block_json = serverSocket.recv(1024).decode()
             print(f"[*] Received block! ({len(block_json)})")
             # load dict from json and get block data
             block = json.loads(block_json)
@@ -43,16 +50,15 @@ def start_client():
                     endTime = time.time()
                     elapsedTime = endTime - startTime
                     print(f"[*] Solved: ({hash}) ({elapsedTime}s)")
-                    client_socket.send(f"verifyhash {hash} {nonce}".encode())
-                    response = client_socket.recv(1024).decode()
-                    input()
+                    serverSocket.send(f"verifyhash {hash} {nonce}".encode())
+                    response = serverSocket.recv(1024).decode()
                     break
         else:
             # get block by default
-            client_socket.send(message.encode())
-            data = client_socket.recv(1024)
-            print(f"Received block from server: {data.decode()}")
+            serverSocket.send(message.encode())
+            data = serverSocket.recv(1024).decode()
+            print(f"Received block from server: {data}")
     # disconnect after processing
-    client_socket.close()
+    serverSocket.close()
 
-start_client()
+startMiner()

@@ -32,6 +32,9 @@ test_block = {
 }
 test_block_json = json.dumps(test_block)
 
+errorPrint(error):
+    print(f"[?] What the sigma!\n {error}")
+
 def handleMiner(minerSocket, addr):
     # main loop
     minerSocket.send("Connected as miner".encode())
@@ -41,7 +44,7 @@ def handleMiner(minerSocket, addr):
         if not data:
             minerSocket.send("no data provided".encode())
         else:
-            print(f"[*] Received data: {data}")
+            print(f"[+] Received data: {data}")
             # logic for block requests
             if data.lower() == "getblock":
                 minerSocket.send(test_block_json.encode())
@@ -52,8 +55,8 @@ def handleMiner(minerSocket, addr):
                 tempblock = test_block
                 tempblock["header"]["nonce"] = int(hashnonce)
                 tempblockhash = sha256(json.dumps(tempblock))
-                print(f"verify (server)({tempblockhash})[{hashnonce}]")
-                print(f"verify (miners)({blockname})[{hashnonce}]")
+                print(f"[#] verifyhash (server)({tempblockhash})[{hashnonce}]")
+                print(f"[#] verifyhash (miners)({blockname})[{hashnonce}]")
                 if tempblockhash == blockname:
                     if tempblockhash.startswith("0"*test_difficulty):
                         print(f"Solved! ({tempblockhash})")
@@ -74,10 +77,35 @@ def handleMiner(minerSocket, addr):
                 try:
                     minerSocket.send("None".encode())
                 except Exception as error:
-                    print(f"what the sigma:\n {error}")
+                    errorPrint(error)
 
-def handleClient(clientSocket):
-    print("incomplete")
+def handleClient(clientSocket, addr):
+    clientSocket.send("Connected as client".encode())
+    try:
+        while True:
+            # set data var and break if empty, process if not
+            data = clientSocket.recv(1024).decode()
+            if not data:
+                clientSocket.send("no data provided".encode())
+            else:
+                print(f"[+] Received data: {data}")
+                if data.lower() == "getblock":
+                    clientSocket.send(test_block_json.encode())
+                elif data.lower() == "ping":
+                    clientSocket.send("pong".encode())
+                elif data.lower() == "exit":
+                    clientIndex = clients.index([clientSocket, addr])
+                    print(f"[x] Client {clientIndex} disconnected ({addr[0]}:{addr[1]})")
+                    clients.pop(clientIndex)
+                    clientSocket.close()
+                    break
+                else:
+                    try:
+                        clientSocket.send("None".encode())
+                    except Exception as error:
+                        errorPrint(error)
+    except Exception as error:
+        errorPrint(error)
     
 def startServer(serverhost, serverport):
     # init socket, bind, then start listening
@@ -101,17 +129,19 @@ def startServer(serverhost, serverport):
                 if socketType.startswith("miner"):
                     # add checks for append
                     miners.append([socketStart, addr])
-                    print(f"[*] Miner {miners.index([socketStart, addr])} connected ({addr[0]}:{addr[1]})")
+                    print(f"[+] Miner {miners.index([socketStart, addr])} connected ({addr[0]}:{addr[1]})")
                     minerHandler = threading.Thread(target=handleMiner, args=(socketStart, addr))
                     minerHandler.start()
                     break
                 elif socketType.startswith("client"):
                     # add check for append
                     clients.append([socketStart, addr])
-                    print(f"[*] Client {miners.index([socketStart, addr])} connected ({addr[0]}:{addr[1]})")
+                    print(f"[+] Client {clients.index([socketStart, addr])} connected ({addr[0]}:{addr[1]})")
+                    clientHandler = threading.Thread(target=handleClient, args=(socketStart, addr))
+                    clientHandler.start()
                     break
                 else:
-                    socketStart.send("Invalid".encode())
+                    socketStart.send("Invalid socketType".encode())
                     socketStart.close()
                     break
     # process keyboard interrupt for exit

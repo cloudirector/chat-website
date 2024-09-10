@@ -1,26 +1,52 @@
 import socket
 import json
 import time
-from hashing import *
 import sys
+from hashing import *
 
-serverhost, serverport = "0.0.0.0", int(sys.argv[1])
+serverHost, serverPort = "0.0.0.0", int(sys.argv[1])
 
 # something like hash verify for messages and users
 
-def start_client():
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((serverhost, serverport))
-    while True:
+def verify(serverSocket, socketType):
+    verifyMessage = serverSocket.recv(1024).decode()
+    serverSocket.send(socketType.encode())
+    serverResponse = serverSocket.recv(1024).decode()
+    print(f'Server: "{serverResponse}"')
+    if serverResponse.startswith("Connected as"):
+        return True
+    elif serverResponse == "Invalid socketType":
+        print("invaid client type")
+        return False
+    else:
+        print("huh")
+        return False
+
+def startClient():
+    print(f"Attempting to connect to ({serverHost})[{serverPort}]")
+    try:
+        serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        serverSocket.connect((serverHost, serverPort))
+        if verify(serverSocket, "client"):
+            connected = True
+        else:
+            connected = False
+    except Exception as error:
+        print(f"Failed to Connect:\n {error}")
+        connected = False
+    while connected:
         message = input("Enter a message (or 'exit' to quit): ")
         if message.lower() == "exit":
-            client_socket.send(message.encode())
+            serverSocket.send(message.encode())
             break
         else:
-            client_socket.send(message.encode())
-            data = client_socket.recv(1024)
+            serverSocket.send(message.encode())
+            data = serverSocket.recv(1024)
             print(f"Received message from server: {data.decode()}")
+    else:
+        print("Disconected :P")
+        serverSocket.close()
     # disconnect after processing
-    client_socket.close()
+    serverSocket.close()
 
-start_client()
+startClient()

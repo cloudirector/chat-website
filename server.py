@@ -14,26 +14,36 @@ test_block = {
     "header": {
         "nonce": 0,
         "difficulty": test_difficulty,
-        "prevhash": "fe976ece5bdd1bc27958bca70345018da1d37cd9d2ff0b02458c90884dfe99fa",
+        "prevhash":
+        "fe976ece5bdd1bc27958bca70345018da1d37cd9d2ff0b02458c90884dfe99fa",
         "hash": "",
         "timestamp": 1120602139
     },
     "body": {
         "messages": {
-            "announcements": [
-                {"timestamp": 1120602139, "username": "admin", "message": "testing"}
-            ],
-            "general": [
-                {"timestamp": 1120602139, "username": "admin", "message": "hello god"},
-                {"timestamp": 1120602139, "username": "god", "message": "what the fuck do you want"}
-            ]
+            "announcements": [{
+                "timestamp": 1120602139,
+                "username": "admin",
+                "message": "testing"
+            }],
+            "general": [{
+                "timestamp": 1120602139,
+                "username": "admin",
+                "message": "hello god"
+            }, {
+                "timestamp": 1120602139,
+                "username": "god",
+                "message": "what the fuck do you want"
+            }]
         }
     }
 }
 test_block_json = json.dumps(test_block)
 
-errorPrint(error):
+
+def errorPrint(error):
     print(f"[?] What the sigma!\n {error}")
+
 
 def handleMiner(minerSocket, addr):
     # main loop
@@ -58,7 +68,7 @@ def handleMiner(minerSocket, addr):
                 print(f"[#] verifyhash (server)({tempblockhash})[{hashnonce}]")
                 print(f"[#] verifyhash (miners)({blockname})[{hashnonce}]")
                 if tempblockhash == blockname:
-                    if tempblockhash.startswith("0"*test_difficulty):
+                    if tempblockhash.startswith("0" * test_difficulty):
                         print(f"Solved! ({tempblockhash})")
                         minerSocket.send("valid, good job!".encode())
                     else:
@@ -69,7 +79,9 @@ def handleMiner(minerSocket, addr):
                 minerSocket.send("pong".encode())
             elif data.lower() == "exit":
                 minerIndex = miners.index([minerSocket, addr])
-                print(f"[x] Miner {minerIndex} disconnected ({addr[0]}:{addr[1]})")
+                print(
+                    f"[x] Miner {minerIndex} disconnected ({addr[0]}:{addr[1]})"
+                )
                 miners.pop(minerIndex)
                 minerSocket.close()
                 break
@@ -78,6 +90,7 @@ def handleMiner(minerSocket, addr):
                     minerSocket.send("None".encode())
                 except Exception as error:
                     errorPrint(error)
+
 
 def handleClient(clientSocket, addr):
     clientSocket.send("Connected as client".encode())
@@ -91,11 +104,16 @@ def handleClient(clientSocket, addr):
                 print(f"[+] Received data: {data}")
                 if data.lower() == "getblock":
                     clientSocket.send(test_block_json.encode())
+                elif data.lower().startswith("message":
+                    # process this shit bruh
+                    pass
                 elif data.lower() == "ping":
                     clientSocket.send("pong".encode())
                 elif data.lower() == "exit":
                     clientIndex = clients.index([clientSocket, addr])
-                    print(f"[x] Client {clientIndex} disconnected ({addr[0]}:{addr[1]})")
+                    print(
+                        f"[x] Client {clientIndex} disconnected ({addr[0]}:{addr[1]})"
+                    )
                     clients.pop(clientIndex)
                     clientSocket.close()
                     break
@@ -106,7 +124,8 @@ def handleClient(clientSocket, addr):
                         errorPrint(error)
     except Exception as error:
         errorPrint(error)
-    
+
+
 def startServer(serverhost, serverport):
     # init socket, bind, then start listening
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -129,15 +148,21 @@ def startServer(serverhost, serverport):
                 if socketType.startswith("miner"):
                     # add checks for append
                     miners.append([socketStart, addr])
-                    print(f"[+] Miner {miners.index([socketStart, addr])} connected ({addr[0]}:{addr[1]})")
-                    minerHandler = threading.Thread(target=handleMiner, args=(socketStart, addr))
+                    print(
+                        f"[+] Miner {miners.index([socketStart, addr])} connected ({addr[0]}:{addr[1]})"
+                    )
+                    minerHandler = threading.Thread(target=handleMiner,
+                                                    args=(socketStart, addr))
                     minerHandler.start()
                     break
                 elif socketType.startswith("client"):
                     # add check for append
                     clients.append([socketStart, addr])
-                    print(f"[+] Client {clients.index([socketStart, addr])} connected ({addr[0]}:{addr[1]})")
-                    clientHandler = threading.Thread(target=handleClient, args=(socketStart, addr))
+                    print(
+                        f"[+] Client {clients.index([socketStart, addr])} connected ({addr[0]}:{addr[1]})"
+                    )
+                    clientHandler = threading.Thread(target=handleClient,
+                                                     args=(socketStart, addr))
                     clientHandler.start()
                     break
                 else:
@@ -149,6 +174,7 @@ def startServer(serverhost, serverport):
         print("\n[*] Server is shutting down...")
         serverSocket.close()
         sys.exit(0)
+
 
 # start server with signal processing
 signal.signal(signal.SIGINT, lambda signal, frame: sys.exit(0))

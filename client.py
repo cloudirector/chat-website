@@ -8,6 +8,7 @@ serverHost, serverPort = "0.0.0.0", int(sys.argv[1])
 
 # something like hash verify for messages and users
 
+
 def verify(serverSocket, socketType):
     verifyMessage = serverSocket.recv(1024).decode()
     serverSocket.send(socketType.encode())
@@ -21,6 +22,7 @@ def verify(serverSocket, socketType):
     else:
         print("huh")
         return False
+
 
 def startClient():
     print(f"Attempting to connect to ({serverHost})[{serverPort}]")
@@ -39,6 +41,20 @@ def startClient():
         if message.lower() == "exit":
             serverSocket.send(message.encode())
             break
+        elif message.lower().startswith("message"):
+            clientMessageArray = message.split(" ")
+            clientMessageSender = input("Sender > ")
+            clientMessageRecipient = input("Recipient > ")
+            clientMessageContentRaw = input("Content > ")
+            clientMessageContentArray = clientMessageContentRaw.split(" ")
+            clientMessageStructure = {
+                "type": "message",
+                "sender": clientMessageSender,
+                "recipient": clientMessageRecipient,
+                "content": clientMessageContentArray
+            }
+            clientMessageJson = json.dumps(clientMessageStructure)
+            print(clientMessageJson)
         else:
             serverSocket.send(message.encode())
             data = serverSocket.recv(1024)
@@ -48,5 +64,6 @@ def startClient():
         serverSocket.close()
     # disconnect after processing
     serverSocket.close()
+
 
 startClient()
